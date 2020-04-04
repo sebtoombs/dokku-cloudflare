@@ -6,13 +6,19 @@ const args = process.argv.slice(2);
 const [app = "", actionName = "", domains = ""] = args;
 console.log(`Post Domains Update`);
 console.log(`appName: ${app}, actionName: ${actionName}, domains: ${domains}`);
-console.log(`DOKKU_ROOT: ${process.env.DOKKU_ROOT}`);
+console.log(`ENV:`, process.env);
+
+log("Test log");
 
 async function test() {
-  await log(`Await log`);
-  log(`Log without await`);
+  console.log("Test execute:");
+  await execute("dokku config:get --global CURL_TIMEOUT");
 }
 test();
+
+function log() {
+  console.log.call(null, [...arguments]);
+}
 
 var exec = require("child_process").exec;
 function execute(command) {
@@ -23,18 +29,4 @@ function execute(command) {
       resolve(stdout);
     });
   });
-}
-
-function log(string) {
-  if (process.env.DOKKU_ROOT) {
-    try {
-      return execute(`dokku_log_info2 "${string}"`);
-    } catch (e) {
-      console.log("Failed to log to dokku. Log below:");
-      console.log(string);
-    }
-  } else {
-    console.log(string);
-    return Promise.resolve();
-  }
 }
