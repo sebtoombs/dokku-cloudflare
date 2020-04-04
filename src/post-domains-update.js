@@ -5,6 +5,8 @@ if (!process.env.DOKKU_ROOT) {
 }
 
 const url = require("url");
+const Promise = require("promise-polyfill");
+const exec = require("child_process").exec;
 
 //TODO allow opts to be set per app
 const opts = {
@@ -25,8 +27,7 @@ const config = {
 
 const args = process.argv.slice(2);
 
-//TODO  not sure what format domains is? is it spaces, csv?
-const [app = "", actionName = "", domains = ""] = args;
+const [app = "", actionName = "", ...domains] = args;
 log(`Post Domains Update`);
 log(`appName: ${app}, actionName: ${actionName}, domains: ${domains}`);
 
@@ -55,8 +56,6 @@ async function run() {
 
   const records = resp.result.filter(r => r.type === "A");
 
-  const appDomains = domains.split(" ");
-
   const getExistingDomainRecord = domain => {
     const record = records.find(r => r.name === domain);
     //console.log(`Existing: ${JSON.stringify(record)}`);
@@ -64,7 +63,7 @@ async function run() {
   };
 
   await Promise.all(
-    appDomains.map(async rawDomain => {
+    domains.map(async rawDomain => {
       let parseDomain = rawDomain.replace(/^(https?:)?\/\//, "//");
       parseDomain = `//${parseDomain}`;
       const parsed = url.parse(parseDomain, false, true);
@@ -200,25 +199,27 @@ async function run() {
 
 run();
 
-function log(string) {
-  if (process.env.DOKKU_ROOT) {
+function log() {
+  /*if (process.env.DOKKU_ROOT) {
     execute(`dokku_log_info2 "${string}"`);
   } else {
     console.log(string);
-  }
+  }*/
+  console.log.call(null, ...arguments);
 }
 
-function logError(errorString) {
-  if (process.env.DOKKU_ROOT) {
+function logError() {
+  /*if (process.env.DOKKU_ROOT) {
     execute(`dokku_log_fail "${errorString}"`);
   } else {
     console.error(errorString);
-  }
+  }*/
+  console.error.call(null, ...arguments);
 }
 
 async function getAppDomains(appName) {
   try {
-    await execute(
+    return await execute(
       `dokku domains:report ${appName} --domains-app-vhosts --quiet`
     );
   } catch (e) {
@@ -226,13 +227,14 @@ async function getAppDomains(appName) {
   }
 }
 
-var exec = require("child_process").exec;
 function execute(command) {
   return new Promise((resolve, reject) => {
     exec(command, function(error, stdout, stderr) {
-      //TODO maybe catch 'error' as well? not sure what it is
-      if (stderr && stderr.length) return reject(stderr);
-      resolve(stdout);
+      if (stderr) {
+        reject(stderr);
+      } else {
+        resolve(stdout);
+      }
     });
   });
 }
