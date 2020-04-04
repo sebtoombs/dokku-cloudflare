@@ -1,6 +1,7 @@
 "use strict";
 
 const args = process.argv.slice(2);
+const exec = require("child_process").exec;
 
 //TODO  not sure what format domains is? is it spaces, csv?
 const [app = "", actionName = "", domains = ""] = args;
@@ -12,21 +13,17 @@ log("Test log");
 
 async function test() {
   console.log("Test execute:");
-  await execute("dokku config:get --global CURL_TIMEOUT");
+  console.log(typeof exec);
+  exec("dokku config:get --global CURL_TIMEOUT", function(
+    error,
+    stdout,
+    stderr
+  ) {
+    console.log("exec response", stdout, stderr);
+  });
 }
 test();
 
 function log() {
-  console.log.call(null, [...arguments]);
-}
-
-var exec = require("child_process").exec;
-function execute(command) {
-  return new Promise((resolve, reject) => {
-    exec(command, function(error, stdout, stderr) {
-      //TODO maybe catch 'error' as well? not sure what it is
-      if (stderr && stderr.length) return reject(stderr);
-      resolve(stdout);
-    });
-  });
+  console.log.call(null, ...arguments);
 }
