@@ -1,0 +1,4 @@
+[plugin]
+description = "dokku plugin to update Cloudflare DNS"
+version = "0.1.1"
+[plugin.config]
