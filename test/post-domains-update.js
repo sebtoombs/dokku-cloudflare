@@ -41,6 +41,9 @@ async function run() {
   const cfZoneID = await dokkuGetConfig("CF_ZONE_ID");
   const serverIP = await dokkuGetConfig("CF_SERVER_IP");
 
+  console.log(`cfToken: ${cfToken}`);
+  console.log(`cfZoneID: ${cfZoneID}`);
+  console.log(`serverIP: ${serverIP}`);
   console.log(`App Domains: `, await dokkuGetAppDomains(app));
   console.log(`CURL_TIMEOUT`, await dokkuGetConfig("CURL_TIMEOUT"));
 
@@ -121,9 +124,9 @@ function execute(command) {
   return new Promise((resolve, reject) => {
     exec(command, function(error, stdout, stderr) {
       if (stderr) {
-        reject(stderr);
+        reject(stderr.trim());
       } else {
-        resolve(stdout);
+        resolve(stdout.trim());
       }
     });
   });
