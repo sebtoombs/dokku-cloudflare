@@ -217,13 +217,15 @@ function logError() {
   console.error.call(null, ...arguments);
 }
 
-async function getAppDomains(appName) {
+async function dokkuGetAppDomains(appName) {
   try {
-    return await execute(
+    const domains = await execute(
       `dokku domains:report ${appName} --domains-app-vhosts --quiet`
     );
+    return domains.split(" ");
   } catch (e) {
-    //TODO
+    //TODO ??
+    return [];
   }
 }
 
@@ -231,9 +233,9 @@ function execute(command) {
   return new Promise((resolve, reject) => {
     exec(command, function(error, stdout, stderr) {
       if (stderr) {
-        reject(stderr);
+        reject(stderr.trim());
       } else {
-        resolve(stdout);
+        resolve(stdout.trim());
       }
     });
   });
